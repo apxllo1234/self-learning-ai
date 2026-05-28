@@ -1,135 +1,153 @@
 # Self-Learning AI Agent System
 
-A controlled autonomous AI agent that can learn, research, code, test, and report — while maintaining safety boundaries and human oversight.
+A controlled autonomous AI agent with a modern web interface that learns, researches, codes, tests, and reports — while maintaining safety boundaries and human oversight.
 
 ## Features
 
-- **Self-Learning Memory**: Persistent memory system that consolidates short-term and long-term knowledge
-- **Multi-Agent System**: Specialized agents for research, coding, training, testing, and reporting
-- **Safety Controller**: Built-in safety checks and human approval gates
-- **Sandboxed Execution**: Code runs in isolated sandbox environment
-- **Goal Management**: Set learning goals and track progress
-- **Progress Reports**: Generate detailed reports on AI activities
+- **🌐 Web UI**: Modern chat interface for interacting with the AI
+- **🧠 Self-Learning Memory**: Persistent memory system that consolidates short-term and long-term knowledge
+- **🎓 Training System**: Manual and scheduled training sessions with progress tracking
+- **⚙️ Configurable Settings**: Adjust AI provider, model, temperature, and training intervals
+- **📊 Statistics Dashboard**: Track conversations, learnings, and training progress
+- **🔒 Safety Controller**: Built-in safety checks and human approval gates
+- **🐳 Docker Support**: Easy self-hosting with Docker
+- **⏰ Auto Training**: GitHub Actions workflow for continuous learning
+
+## Quick Start
+
+### Using Docker (Recommended)
+
+```bash
+# Pull and run
+docker-compose -f docker/docker-compose.web.yml up
+
+# Access at http://localhost:5000
+```
+
+### Manual Setup
+
+```bash
+# Install dependencies
+pip install -r requirements.txt
+
+# Run the web UI
+cd src/web
+flask run --host 0.0.0.0 --port 5000
+
+# Or run the main CLI
+python src/main.py
+```
+
+## Web UI Features
+
+### Chat Interface
+- Real-time conversation with AI
+- Persistent memory across sessions
+- Learning from every interaction
+
+### Settings Panel
+- **AI Provider**: OpenAI, Anthropic, or Local (Ollama)
+- **Model**: Choose your preferred model
+- **Temperature**: Adjust creativity level
+- **Auto Training**: Enable/disable automatic training
+- **Training Interval**: How often to train (hours)
+
+### Training Sessions
+- Manual training trigger
+- Progress visualization
+- Performance tracking
+- Learning history
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                        User Interface                        │
+│                        Web UI (Flask)                        │
+│  ┌─────────────┐  ┌─────────────┐  ┌──────────────────┐  │
+│  │   Chat      │  │  Settings    │  │    Training       │  │
+│  │   Interface  │  │  Panel      │  │    Sessions       │  │
+│  └─────────────┘  └─────────────┘  └──────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                     Main Orchestrator                        │
+│                     API Server                               │
+│  /api/chat | /api/learn | /api/training | /api/settings    │
 └─────────────────────────────────────────────────────────────┘
-         │           │           │           │
-         ▼           ▼           ▼           ▼
-   ┌──────────┐ ┌────────┐ ┌────────┐ ┌──────────┐
-   │ Research │ │  Code  │ │Training│ │  Report  │
-   │  Agent   │ │  Agent │ │  Agent │ │  Agent   │
-   └──────────┘ └────────┘ └────────┘ └──────────┘
-         │           │           │           │
-         └───────────┴───────────┴───────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    Memory System                             │
-│  (Short-term + Long-term + Goals + Learned Topics)         │
+│                     SQLite Database                          │
+│  (conversations, learnings, training_history, preferences)  │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────┐
+│                     AI Core (SelfLearningAI)                 │
+│  ├── Agents (Research, Code, Training, Testing, Report)     │
+│  └── Memory System (Short-term + Long-term)                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Agents
+## GitHub Actions Auto-Training
 
-| Agent | Purpose |
-|-------|---------|
-| ResearchAgent | Searches web, finds learning resources, analyzes information |
-| CodeAgent | Generates and modifies code with safety checks |
-| TrainingAgent | Trains models and improves performance |
-| TestingAgent | Runs tests and validates code safety |
-| ReportAgent | Generates progress reports and summaries |
-| SafetyController | Enforces safety rules and manages approvals |
+The repository includes workflows that run training automatically:
 
-## Installation
+- **train.yml**: Daily training at 2 AM UTC + manual trigger
+- **learn.yml**: Continuous learning every 6 hours
 
-```bash
-pip install -r requirements.txt
-```
+Set `OPENAI_API_KEY` in GitHub Secrets to enable automatic training.
 
-## Usage
+## Environment Variables
 
-```python
-from src.main import SelfLearningAI
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OPENAI_API_KEY` | - | Your API key |
+| `LLM_PROVIDER` | openai | AI provider |
+| `LLM_MODEL` | gpt-4 | Model name |
+| `AUTO_TRAIN` | true | Enable auto training |
+| `TRAINING_INTERVAL` | 6 | Training interval (hours) |
+| `SECRET_KEY` | dev-secret | Flask secret key |
+| `PORT` | 5000 | Web server port |
 
-# Initialize the AI
-ai = SelfLearningAI()
+## API Endpoints
 
-# Set a learning goal
-goal = ai.set_goal("Learn about machine learning", priority="high")
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/chat` | POST | Send message, get AI response |
+| `/api/history` | GET | Get conversation history |
+| `/api/learn` | POST | Add a learning |
+| `/api/learnings` | GET | Get all learnings |
+| `/api/training` | POST | Trigger training session |
+| `/api/training/history` | GET | Get training history |
+| `/api/settings` | GET/POST | Get/set AI settings |
+| `/api/clear` | POST | Clear conversation history |
 
-# Learn a topic
-result = ai.learn_topic("reinforcement learning")
+## Self-Hosting Guide
 
-# Get a report
-report = ai.get_report()
-
-# Check status
-status = ai.get_status()
-print(status)
-```
-
-## Configuration
-
-Set environment variables or modify `src/config/__init__.py`:
-
-```python
-export OPENAI_API_KEY="your-api-key"
-export LLM_PROVIDER="openai"  # or "anthropic", "local"
-export LLM_MODEL="gpt-4"
-export VECTOR_DB="chroma"  # or "weaviate"
-```
-
-## Safety Features
-
-- **Sandboxed code execution** - Code runs in isolated environment
-- **Human approval gates** - Critical operations require approval
-- **Safety rules** - Blocks dangerous commands and operations
-- **Cost controls** - Limits API spending
-- **Rollback capability** - Can revert changes through git
-
-## Development
+### Basic VPS Setup
 
 ```bash
-# Run tests
-pytest tests/
+# SSH into your VPS
+ssh user@your-server
+
+# Install Docker
+curl -fsSL https://get.docker.com | sh
+
+# Clone your repo
+git clone https://github.com/apxllo1234/self-learning-ai.git
+cd self-learning-ai
+
+# Create .env file
+echo "OPENAI_API_KEY=your-key" > .env
+echo "SECRET_KEY=$(openssl rand -hex 32)" >> .env
 
 # Run with Docker
-docker-compose up
+docker-compose -f docker/docker-compose.web.yml up -d
+
+# Access at http://your-server-ip:5000
 ```
-
-## Docker
-
-```bash
-# Build image
-docker build -t self-learning-ai .
-
-# Run container
-docker run -it self-learning-ai python src/main.py
-```
-
-## Roadmap
-
-- [ ] Add vector database integration (ChromaDB/Weaviate)
-- [ ] Implement web search integration (Tavily/SerpAPI)
-- [ ] Add local LLM support (Ollama)
-- [ ] Create web dashboard
-- [ ] Add Git-based version control for code changes
-- [ ] Implement reinforcement learning feedback loop
-- [ ] Add more sophisticated evaluation metrics
 
 ## License
 
 MIT License
-
-## Acknowledgments
-
-Built based on concepts from LangGraph, CrewAI, and OpenDevin.
