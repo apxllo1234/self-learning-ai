@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  self-learning-ai:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: self-learning-ai
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4}
+      - VECTOR_DB=${VECTOR_DB:-chroma}
+    volumes:
+      - ./data:/app/data
+      - ./project:/app/project
+    stdin_open: true
+    tty: true
+    command: python src/main.py
+
+  # Optional: ChromaDB for vector storage
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
+volumes:
+  chroma_data:
