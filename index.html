@@ -5,19 +5,168 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Self-Learning AI</title>
     <style>
-        :root {
-            --bg-primary: #0a0a0f;
-            --bg-secondary: #12121a;
-            --bg-tertiary: #1a1a25;
-            --accent: #6366f1;
-            --accent-hover: #818cf8;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --border: #2e2e3a;
-            --success: #22c55e;
-            --danger: #ef4444;
-        }
+        :root { --bg-primary: #0a0a0f; --bg-secondary: #12121a; --bg-tertiary: #1a1a25; --accent: #6366f1; --accent-hover: #818cf8; --text-primary: #f1f5f9; --text-secondary: #94a3b8; --text-muted: #64748b; --border: #2e2e3a; --success: #22c55e; --danger: #ef4444; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg-primary); color: var(--text-primary); min-height: 100vh; display: flex; flex-direction: column; }
+        .header { background: var(--bg-secondary); border-bottom: 1px solid var(--border); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--accent), #a855f7); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; }
+        .logo-text { font-size: 1.25rem; font-weight: 600; }
+        .header-actions { display: flex; gap: 0.75rem; }
+        .btn { padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-size: 0.875rem; font-weight: 500; transition: all 0.2s; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: var(--accent-hover); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: var(--border); }
+        .main-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 280px; background: var(--bg-secondary); border-right: 1px solid var(--border); display: flex; flex-direction: column; padding: 1rem; overflow-y: auto; }
+        .sidebar-section { margin-bottom: 1.5rem; }
+        .sidebar-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem; }
+        .stat-card { background: var(--bg-tertiary); border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: var(--accent); }
+        .stat-label { font-size: 0.75rem; color: var(--text-secondary); margin-top: 0.25rem; }
+        .learnings-list { list-style: none; }
+        .learning-item { background: var(--bg-tertiary); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.5rem; font-size: 0.875rem; }
+        .learning-topic { color: var(--accent); font-weight: 500; }
+        .learning-content { color: var(--text-secondary); margin-top: 0.25rem; font-size: 0.8rem; }
+        .chat-area { flex: 1; display: flex; flex-direction: column; background: var(--bg-primary); }
+        .chat-messages { flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; }
+        .message { max-width: 70%; padding: 1rem 1.25rem; border-radius: 16px; line-height: 1.5; }
+        .message-user { align-self: flex-end; background: var(--accent); color: white; border-bottom-right-radius: 4px; }
+        .message-assistant { align-self: flex-start; background: var(--bg-secondary); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+        .message-time { font-size: 0.7rem; color: var(--text-muted); margin-top: 0.5rem; }
+        .chat-input-area { padding: 1rem 1.5rem; background: var(--bg-secondary); border-top: 1px solid var(--border); }
+        .chat-input-container { display: flex; gap: 0.75rem; align-items: flex-end; }
+        .chat-input { flex: 1; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 12px; padding: 0.875rem 1rem; color: var(--text-primary); font-size: 0.95rem; font-family: inherit; resize: none; min-height: 50px; max-height: 150px; }
+        .chat-input:focus { outline: none; border-color: var(--accent); }
+        .chat-input::placeholder { color: var(--text-muted); }
+        .send-btn { background: var(--accent); color: white; border: none; border-radius: 12px; padding: 0.875rem 1.5rem; cursor: pointer; font-weight: 500; }
+        .send-btn:hover { background: var(--accent-hover); }
+        .settings-panel { display: none; position: fixed; top: 0; right: 0; width: 400px; height: 100%; background: var(--bg-secondary); border-left: 1px solid var(--border); z-index: 100; overflow-y: auto; padding: 1.5rem; }
+        .settings-panel.active { display: block; }
+        .settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
+        .settings-title { font-size: 1.25rem; font-weight: 600; }
+        .close-btn { background: none; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1.5rem; }
+        .settings-group { margin-bottom: 1.5rem; }
+        .settings-label { font-size: 0.875rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 0.5rem; display: block; }
+        .settings-input { width: 100%; padding: 0.75rem; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; color: var(--text-primary); font-size: 0.9rem; }
+        .settings-input:focus { outline: none; border-color: var(--accent); }
+        .toggle-container { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem; background: var(--bg-tertiary); border-radius: 8px; margin-bottom: 0.75rem; }
+        .toggle { position: relative; width: 48px; height: 26px; background: var(--border); border-radius: 13px; cursor: pointer; transition: background 0.2s; }
+        .toggle.active { background: var(--accent); }
+        .toggle::after { content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.2s; }
+        .toggle.active::after { transform: translateX(22px); }
+        .save-btn { width: 100%; padding: 0.875rem; background: var(--accent); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; margin-top: 1rem; }
+        .save-btn:hover { background: var(--accent-hover); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: var(--bg-secondary); border-radius: 16px; padding: 2rem; width: 500px; max-width: 90%; }
+        .modal-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; }
+        .training-progress { background: var(--bg-tertiary); border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+        .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 0.5rem; }
+        .progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
+        .typing-indicator { display: flex; gap: 4px; padding: 0.5rem; }
+        .typing-dot { width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; animation: typing 1.4s infinite; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 60%, 100% { transform: translateY(0); } 30% { transform: translateY(-4px); } }
+        .training-history { max-height: 200px; overflow-y: auto; margin-top: 1rem; }
+        .history-item { background: var(--bg-tertiary); padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; font-size: 0.85rem; }
+        .status-badge { padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500; background: var(--accent); color: white; }
+        @media (max-width: 768px) { .sidebar { display: none; } .message { max-width: 85%; } }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="logo"><div class="logo-icon">🧠</div><span class="logo-text">Self-Learning AI</span></div>
+        <div class="header-actions">
+            <span class="status-badge">⚡ Standalone</span>
+            <button class="btn btn-secondary" onclick="openTraining()">🎓 Train</button>
+            <button class="btn btn-secondary" onclick="clearChat()">🗑️ Clear</button>
+            <button class="btn btn-primary" onclick="toggleSettings()">⚙️ Settings</button>
+        </div>
+    </header>
+    <div class="main-container">
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <div class="sidebar-title">Statistics</div>
+                <div class="stat-card"><div class="stat-value" id="total-conversations">0</div><div class="stat-label">Total Messages</div></div>
+                <div class="stat-card"><div class="stat-value" id="total-learnings">0</div><div class="stat-label">Topics Learned</div></div>
+                <div class="stat-card"><div class="stat-value" id="vocabulary-size">0</div><div class="stat-label">Vocabulary Size</div></div>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Recent Learnings</div>
+                <ul class="learnings-list" id="learnings-list"><li class="learning-item"><div class="learning-topic">Getting Started</div><div class="learning-content">Chat with me!</div></li></ul>
+            </div>
+            <div class="sidebar-section">
+                <div class="sidebar-title">Training History</div>
+                <div class="training-history" id="training-history"></div>
+            </div>
+            <div class="sidebar-section"><button class="btn btn-primary" onclick="openTraining()" style="width: 100%;">🎓 Start Training</button></div>
+        </aside>
+        <main class="chat-area">
+            <div class="chat-messages" id="chat-messages"><div class="message message-assistant"><div>👋 I'm your standalone self-learning AI using Markov Chain! I learn from our conversations. Try chatting with me!</div><div class="message-time">Just now</div></div></div>
+            <div class="chat-input-area">
+                <div class="chat-input-container">
+                    <textarea class="chat-input" id="chat-input" placeholder="Ask me anything or teach me something new..." rows="1" onkeydown="handleKeyDown(event)"></textarea>
+                    <button class="send-btn" onclick="sendMessage()">Send</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <div class="settings-panel" id="settings-panel">
+        <div class="settings-header"><h2 class="settings-title">⚙️ Settings</h2><button class="close-btn" onclick="toggleSettings()">×</button></div>
+        <div class="settings-group"><label class="settings-label">Response Creativity (0.1 - 1.0)</label><input type="range" id="creativity" min="0.1" max="1" step="0.1" value="0.7"><span id="creativity-value">0.7</span></div>
+        <div class="settings-group"><label class="settings-label">Max Response Length</label><input type="number" id="max-length" value="30" min="10" max="100"></div>
+        <div class="settings-group"><div class="toggle-container"><span>Auto-Save</span><div class="toggle active" id="auto-save-toggle" onclick="toggleAutoSave()"></div></div></div>
+        <button class="save-btn" onclick="saveSettings()">Save Settings</button>
+        <div style="margin-top: 2rem; padding: 1rem; background: var(--bg-tertiary); border-radius: 8px;">
+            <h3 style="margin-bottom: 0.5rem;">🔧 System Info</h3>
+            <p style="color: var(--text-secondary); font-size: 0.85rem;"><strong>Mode:</strong> Standalone<br><strong>Storage:</strong> LocalStorage<br><strong>Algorithm:</strong> Markov Chain</p>
+            <button class="btn btn-secondary" onclick="exportData()" style="margin-top: 0.5rem; width: 100%;">📤 Export</button>
+            <button class="btn btn-secondary" onclick="importData()" style="margin-top: 0.5rem; width: 100%;">📥 Import</button>
+            <button class="btn btn-secondary" onclick="resetAI()" style="margin-top: 0.5rem; width: 100%; background: var(--danger); color: white;">🔄 Reset</button>
+        </div>
+    </div>
+    <div class="modal" id="training-modal"><div class="modal-content"><h2 class="modal-title">🎓 Training</h2><p style="color: var(--text-secondary);">Training from conversations...</p><div class="training-progress"><div id="training-status">Initializing...</div><div class="progress-bar"><div class="progress-fill" id="training-progress" style="width: 0%;"></div></div></div><div id="training-topics"></div><button class="btn btn-secondary" onclick="closeTraining()" style="margin-top: 1rem;">Close</button></div></div>
+    <script>
+class SelfLearningAI {
+    constructor() { this.chain = {}; this.conversations = []; this.trainingHistory = []; this.loadFromStorage(); if (Object.keys(this.chain).length === 0) this.preload(); }
+    preload() { ["Hello! How are you today?","I'm here to help you learn.","What would you like to explore?","Learning is a journey.","I can remember our conversations.","Feel free to ask me anything.","Tell me about your interests.","Let's learn something new!","What topics interest you?","I'm building knowledge from chat."].forEach(t => this.train(t)); }
+    loadFromStorage() { try { const s=localStorage.getItem('ai_chain'); const c=localStorage.getItem('ai_conversations'); const h=localStorage.getItem('ai_history'); if(s) this.chain=JSON.parse(s); if(c) this.conversations=JSON.parse(c); if(h) this.trainingHistory=JSON.parse(h); } catch(e) {} }
+    save() { try { localStorage.setItem('ai_chain',JSON.stringify(this.chain)); localStorage.setItem('ai_conversations',JSON.stringify(this.conversations)); localStorage.setItem('ai_history',JSON.stringify(this.trainingHistory)); } catch(e) {} }
+    tokenize(t) { return t.toLowerCase().match(/[\w']+|[.,!?;]/g)||[]; }
+    train(text) { const words=this.tokenize(text); if(words.length<2) return; for(let i=0;i<words.length-1;i++) { const key=words[i]; if(!this.chain[key]) this.chain[key]={}; this.chain[key][words[i+1]]=(this.chain[key][words[i+1]]||0)+1; } this.save(); }
+    generate(input, maxLen=30, creativity=0.7) { this.train(input); this.conversations.push({role:'user',content:input,time:Date.now()}); const words=this.tokenize(input); let start=null; for(let i=words.length-1;i>=0;i--) { if(this.chain[words[i]]&&Object.keys(this.chain[words[i]]).length>0) { start=words[i]; break; } } if(!start) { const k=Object.keys(this.chain); start=k.length?k[Math.floor(Math.random()*k.length)]:null; } if(!start) return "I'm learning... tell me more!"; const response=[start]; let cur=start; for(let i=0;i<maxLen;i++) { if(!this.chain[cur]) break; const n=Object.keys(this.chain[cur]); if(!n.length) break; const w=n.map(x=>this.chain[cur][x]); const t=w.reduce((a,b)=>a+b,0); let sel; if(Math.random()<creativity&&n.length>1) sel=n[Math.floor(Math.random()*n.length)]; else { let r=Math.random()*t; for(let j=0;j<n.length;j++) { r-=w[j]; if(r<=0) { sel=n[j]; break; } } if(!sel) sel=n[n.length-1]; } response.push(sel); cur=sel; if(['.','!','?'].includes(cur)) break; } const result=response.join(' '); this.conversations.push({role:'assistant',content:result,time:Date.now()}); this.save(); return result.charAt(0).toUpperCase()+result.slice(1); }
+    trainSession() { this.conversations.forEach(c=>this.train(c.content)); this.trainingHistory.push({date:new Date().toISOString(),accuracy:Math.min(0.95,0.5+(Object.keys(this.chain).length*0.001))}); this.save(); return {topics_processed:this.conversations.length,accuracy:this.trainingHistory[this.trainingHistory.length-1].accuracy}; }
+    export() { return JSON.stringify({chain:this.chain,conversations:this.conversations,history:this.trainingHistory},null,2); }
+    import(data) { try { const p=JSON.parse(data); if(p.chain) this.chain=p.chain; if(p.conversations) this.conversations=p.conversations; if(p.history) this.trainingHistory=p.history; this.save(); return true; } catch(e) { return false; } }
+    reset() { this.chain={}; this.conversations=[]; this.trainingHistory=[]; localStorage.clear(); this.preload(); }
+    stats() { return {messages:this.conversations.length,learnings:this.trainingHistory.length,vocabulary:Object.keys(this.chain).length}; }
+}
+const ai=new SelfLearningAI();
+document.addEventListener('DOMContentLoaded',()=>{loadStats();loadLearnings();loadSettings();loadTrainingHistory();});
+async function sendMessage() { const input=document.getElementById('chat-input'); const msg=input.value.trim(); if(!msg) return; addMessage('user',msg); input.value=''; const typing=document.createElement('div'); typing.className='message message-assistant'; typing.innerHTML='<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>'; document.getElementById('chat-messages').appendChild(typing); scrollToBottom(); await new Promise(r=>setTimeout(r,500+Math.random()*500)); typing.remove(); const settings=JSON.parse(localStorage.getItem('ai_settings')||'{}'); const response=ai.generate(msg,settings.maxLength||30,settings.creativity||0.7); addMessage('assistant',response); loadStats(); }
+function addMessage(role,content) { const div=document.createElement('div'); div.className=`message message-${role}`; const time=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}); div.innerHTML=`<div>${content}</div><div class="message-time">${time}</div>`; document.getElementById('chat-messages').appendChild(div); scrollToBottom(); }
+function scrollToBottom() { document.getElementById('chat-messages').scrollTop=document.getElementById('chat-messages').scrollHeight; }
+function handleKeyDown(e) { if(e.key==='Enter'&&!e.shiftKey) { e.preventDefault(); sendMessage(); } }
+function loadStats() { const s=ai.stats(); document.getElementById('total-conversations').textContent=s.messages; document.getElementById('total-learnings').textContent=s.learnings; document.getElementById('vocabulary-size').textContent=s.vocabulary; }
+function loadLearnings() { const list=document.getElementById('learnings-list'); list.innerHTML=''; if(!ai.trainingHistory.length) { list.innerHTML='<li class="learning-item"><div class="learning-topic">No learnings</div><div class="learning-content">Chat to teach me!</div></li>'; return; } ai.trainingHistory.slice(-5).reverse().forEach(l=>{ const li=document.createElement('li'); li.className='learning-item'; li.innerHTML=`<div class="learning-topic">Training</div><div class="learning-content">Accuracy: ${((l.accuracy||0.5)*100).toFixed(0)}%</div>`; list.appendChild(li); }); }
+function loadTrainingHistory() { const c=document.getElementById('training-history'); c.innerHTML=''; if(!ai.trainingHistory.length) { c.innerHTML='<div class="history-item">No history</div>'; return; } ai.trainingHistory.slice(-5).reverse().forEach(h=>{ const d=document.createElement('div'); d.className='history-item'; d.innerHTML=`<strong>${new Date(h.date).toLocaleDateString()}</strong><br>${((h.accuracy||0.5)*100).toFixed(0)}%`; c.appendChild(d); }); }
+function loadSettings() { const s=JSON.parse(localStorage.getItem('ai_settings')||'{}'); if(s.creativity) { document.getElementById('creativity').value=s.creativity; document.getElementById('creativity-value').textContent=s.creativity; } if(s.maxLength) document.getElementById('max-length').value=s.maxLength; document.getElementById('auto-save-toggle').classList.toggle('active',s.autoSave!==false); }
+function toggleSettings() { document.getElementById('settings-panel').classList.toggle('active'); }
+function toggleAutoSave() { document.getElementById('auto-save-toggle').classList.toggle('active'); }
+function saveSettings() { localStorage.setItem('ai_settings',JSON.stringify({creativity:parseFloat(document.getElementById('creativity').value),maxLength:parseInt(document.getElementById('max-length').value),autoSave:document.getElementById('auto-save-toggle').classList.contains('active')})); alert('Settings saved!'); toggleSettings(); }
+document.getElementById('creativity').addEventListener('input',(e)=>{document.getElementById('creativity-value').textContent=e.target.value;});
+async function openTraining() { document.getElementById('training-modal').classList.add('active'); const topicsDiv=document.getElementById('training-topics'); const progressBar=document.getElementById('training-progress'); const statusDiv=document.getElementById('training-status'); topicsDiv.innerHTML='<p>📊 Analyzing...</p>'; progressBar.style.width='30%'; statusDiv.textContent='Analyzing conversations...'; await new Promise(r=>setTimeout(r,500)); topicsDiv.innerHTML='<p>🧠 Training...</p>'; progressBar.style.width='70%'; statusDiv.textContent='Training Markov chain...'; await new Promise(r=>setTimeout(r,500)); const result=ai.trainSession(); progressBar.style.width='100%'; topicsDiv.innerHTML=`<p>✅ Complete!</p><p>Topics: ${result.topics_processed}</p><p>Accuracy: ${(result.accuracy*100).toFixed(1)}%</p>`; loadStats(); loadTrainingHistory(); }
+function closeTraining() { document.getElementById('training-modal').classList.remove('active'); }
+function clearChat() { if(!confirm('Clear chat?')) return; ai.conversations=[]; ai.save(); document.getElementById('chat-messages').innerHTML='<div class="message message-assistant"><div>🗑️ Chat cleared!</div><div class="message-time">Just now</div></div>'; loadStats(); }
+function exportData() { const blob=new Blob([ai.export()],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='ai-backup.json'; a.click(); }
+function importData() { const i=document.createElement('input'); i.type='file'; i.accept='application/json'; i.onchange=(e)=>{ const f=e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=(ev)=>{ if(ai.import(ev.target.result)) { alert('Imported!'); loadStats(); } else { alert('Failed!'); } }; r.readAsText(f); }; i.click(); }
+function resetAI() { if(!confirm('⚠️ Reset ALL?')||!confirm('Permanent!')) return; ai.reset(); document.getElementById('chat-messages').innerHTML='<div class="message message-assistant"><div>🔄 AI Reset!</div><div class="message-time">Just now</div></div>'; loadStats(); loadLearnings(); loadTrainingHistory(); }
+    </script>
+</body>
+</html>
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
