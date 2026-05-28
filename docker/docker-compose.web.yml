@@ -3,20 +3,51 @@ version: '3.8'
 services:
   self-learning-ai:
     build:
-      context: ..
+      context: .
       dockerfile: docker/Dockerfile.web
     container_name: self-learning-ai
     ports:
       - "5000:5000"
     environment:
-      - LEARNING_ALGO=${LEARNING_ALGO:-markov}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4}
       - AUTO_TRAIN=${AUTO_TRAIN:-true}
       - TRAINING_INTERVAL=${TRAINING_INTERVAL:-6}
       - SECRET_KEY=${SECRET_KEY:-change-this-in-production}
       - FLASK_DEBUG=false
     volumes:
-      - ../data:/app/data
+      - ./data:/app/data
+      - ./src:/app/src
     restart: unless-stopped
+
+  # Optional: Background training worker
+  training-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: training-worker
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LLM_PROVIDER=${LLM_PROVIDER:-openai}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4}
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    command: python -c "
+      import time
+      from src.main import SelfLearningAI
+      from src.config import Config
+      while True:
+        try:
+          ai = SelfLearningAI(Config())
+          for topic in ['ml optimization', 'code patterns', 'best practices']:
+            ai.learn_topic(topic)
+          time.sleep(21600)  # 6 hours
+        except Exception as e:
+          print(f'Error: {e}')
+          time.sleep(300)
+    "
 
 networks:
   default:

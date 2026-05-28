@@ -1,14 +1,33 @@
 [project]
 name = "self-learning-ai"
 version = "0.1.0"
-description = "A controlled autonomous AI agent from scratch"
+description = "A controlled autonomous AI agent that learns, researches, codes, and reports"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.9"
 dependencies = [
-    "flask>=3.0.0",
-    "numpy>=1.24.0",
+    "openai>=1.0.0",
+    "chromadb>=0.4.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+]
+search = [
+    "tavily-python>=0.3.0",
+    "serpapi>=0.1.0",
+]
+local = [
+    "ollama>=0.1.0",
 ]
 
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"

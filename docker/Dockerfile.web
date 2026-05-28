@@ -4,12 +4,13 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir openai anthropic chromadb
 
-COPY . .
+COPY src/ src/
 
-ENV FLASK_APP=app.py
+ENV FLASK_APP=src/web/app.py
 ENV FLASK_DEBUG=false
 
 EXPOSE 5000
 
-CMD ["python", "app.py"]
+CMD ["python", "-m", "src.web.app"]

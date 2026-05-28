@@ -1,3 +1,24 @@
-flask
-sqlite3-utils
-numpy
+# Web UI
+flask>=2.3.0
+werkzeug>=2.3.0
+
+# Dependencies
+openai>=1.0.0
+anthropic>=0.18.0
+chromadb>=0.4.0
+weaviate-client>=4.0.0
+
+# Optional: for web search
+tavily-python>=0.3.0
+serpapi>=0.1.0
+
+# Optional: for local models
+ollama>=0.1.0
+
+# Testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+
+# Utilities
+python-dotenv>=1.0.0
+requests>=2.28.0

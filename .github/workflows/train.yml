@@ -1,0 +1,136 @@
+name: Self-Learning AI Training
+
+on:
+  schedule:
+    # Run training every day at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    # Allow manual trigger
+  push:
+    branches:
+      - main
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -e . 2>/dev/null || true
+
+      - name: Run self-training
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          LLM_PROVIDER: ${{ vars.LLM_PROVIDER || 'openai' }}
+          LLM_MODEL: ${{ vars.LLM_MODEL || 'gpt-4' }}
+        run: |
+          python -c "
+          from src.main import SelfLearningAI
+          from src.config import Config
+          
+          ai = SelfLearningAI()
+          
+          # Define learning objectives
+          topics = [
+              'machine learning optimization',
+              'code quality best practices',
+              'AI safety techniques',
+              'performance improvements',
+              'new framework features'
+          ]
+          
+          for topic in topics:
+              print(f'Learning: {topic}')
+              ai.learn_topic(topic)
+          
+          # Run training on collected knowledge
+          from src.agents.training_agent import TrainingAgent
+          memory = ai.memory
+          trainer = TrainingAgent(memory, ai.config.llm.__dict__)
+          
+          # Fine-tune on accumulated knowledge
+          training_data = []
+          for m in list(memory.short_term) + list(memory.long_term.values()):
+              training_data.append({'input': f'Topic: {m.content}', 'output': 'learned'})
+          
+          if training_data:
+              result = trainer.fine_tune(training_data, 'self_improvement')
+              print(f'Training complete: {result}')
+          
+          # Generate training report
+          report = ai.get_report()
+          print(report)
+          "
+
+      - name: Analyze and improve code
+        run: |
+          python -c "
+          from src.agents.code_agent import CodeAgent
+          from src.memory import MemorySystem
+          from src.config import Config
+          
+          memory = MemorySystem('./data/memory')
+          code_agent = CodeAgent(memory, {}, './')
+          
+          # Analyze recent improvements
+          recent_changes = memory.search('improvement', limit=5)
+          
+          # Suggest code refinements
+          print('Analyzing code for improvements...')
+          print(f'Found {len(recent_changes)} improvement areas')
+          "
+
+      - name: Commit training updates
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Add any new files from training
+          git add -A 2>/dev/null || true
+          
+          # Check if there are changes to commit
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "AI Self-Training: $(date +'%Y-%m-%d %H:%M') - Model updated with new learnings"
+            git push || echo "Push failed (expected if no remote)"
+          fi
+
+      - name: Generate training log
+        run: |
+          echo "## Training Log - $(date)" >> training_log.md
+          echo "Topics learned: $(date)" >> training_log.md
+          cat training_log.md 2>/dev/null || echo "No log yet"
+
+  daily-report:
+    runs-on: ubuntu-latest
+    needs: train
+    
+    steps:
+      - name: Generate daily report
+        run: |
+          echo "# Daily Training Report - $(date +'%Y-%m-%d')" > daily_report.md
+          echo "Automated training completed successfully" >> daily_report.md
+          echo "Next training: Tomorrow at 2 AM UTC" >> daily_report.md
+          
+  notify:
+    runs-on: ubuntu-latest
+    needs: train
+    if: always()
+    
+    steps:
+      - name: Post training status
+        run: |
+          echo "Training job completed"
+          echo "Status: ${{ needs.train.result }}"

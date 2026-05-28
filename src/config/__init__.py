@@ -6,10 +6,13 @@ from dataclasses import dataclass, field
 from typing import List, Optional
 
 @dataclass
-class LearningConfig:
-    algorithm: str = os.getenv("LEARNING_ALGO", "markov")
-    memory_size: int = 1000
-    learning_rate: float = 0.1
+class LLMConfig:
+    provider: str = os.getenv("LLM_PROVIDER", "openai")
+    model: str = os.getenv("LLM_MODEL", "gpt-4")
+    api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
+    base_url: Optional[str] = os.getenv("LLM_BASE_URL")
+    temperature: float = 0.7
+    max_tokens: int = 4000
 
 @dataclass
 class SafetyConfig:
@@ -21,12 +24,13 @@ class SafetyConfig:
 
 @dataclass
 class MemoryConfig:
+    vector_db_type: str = os.getenv("VECTOR_DB", "chroma")
     persist_directory: str = "./data/memory"
     max_memory_items: int = 10000
 
 @dataclass
 class Config:
-    learning: LearningConfig = field(default_factory=LearningConfig)
+    llm: LLMConfig = field(default_factory=LLMConfig)
     safety: SafetyConfig = field(default_factory=SafetyConfig)
     memory: MemoryConfig = field(default_factory=MemoryConfig)
     goals: List[str] = field(default_factory=list)
